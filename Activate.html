@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Activar Stream HUD Full 2.0</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #020b14;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 18px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #071526, #03101d);
+      border: 1px solid #1f3855;
+      border-radius: 16px;
+      padding: 22px 20px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .icon-box {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: rgba(0, 242, 210, 0.08);
+      border: 2px solid #00f2d2;
+      display: grid;
+      place-items: center;
+      color: #00f2d2;
+      font-size: 1.3rem;
+      box-shadow: 0 0 15px rgba(0, 242, 210, 0.2);
+    }
+
+    .tag {
+      background: rgba(0, 242, 210, 0.15);
+      border: 1px solid #00f2d2;
+      color: #00f2d2;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    h2 { font-size: 1.15rem; color: #f1f5f9; font-weight: 900; }
+
+    .form-group { width: 100%; text-align: left; }
+    label { font-size: 0.65rem; color: #8291ad; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    input[type="email"], select {
+      width: 100%;
+      padding: 9px 10px;
+      margin-top: 4px;
+      background: #020b14;
+      border: 1px solid #1f3855;
+      border-radius: 8px;
+      color: #00f2d2;
+      font-size: 0.85rem;
+      font-weight: 700;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="email"]:focus, select:focus { border-color: #00f2d2; box-shadow: 0 0 10px rgba(0, 242, 210, 0.2); }
+    option { background: #071526; color: #fff; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      margin-top: 4px;
+      background: linear-gradient(90deg, #00f2d2, #00f29a);
+      color: #020b14;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 15px rgba(0, 242, 210, 0.2);
+    }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(0, 242, 210, 0.35); }
+    .btn-submit:disabled { background: #1e293b; color: #475569; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    .notice-box {
+      width: 100%;
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px dashed rgba(251, 191, 36, 0.4);
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-size: 0.68rem;
+      color: #fcd34d;
+      line-height: 1.3;
+      text-align: left;
+    }
+
+    .status-box {
+      width: 100%;
+      font-size: 0.72rem;
+      font-weight: 700;
+      min-height: 18px;
+      padding: 7px 9px;
+      border-radius: 8px;
+      display: none;
+      line-height: 1.3;
+    }
+    .status-box.show { display: block; }
+    .status-box.error { background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.3); color: #f87171; }
+    .status-box.loading { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; }
+    .status-box.pending { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); color: #fbbf24; }
+    .status-box.success { background: rgba(0, 242, 154, 0.1); border: 1px solid rgba(0, 242, 154, 0.3); color: #00f29a; }
+
+    .btn-store {
+      width: 100%;
+      padding: 8px;
+      background: #020b14;
+      border: 1px solid #1f3855;
+      color: #38bdf8;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .footer-support { font-size: 0.65rem; color: #64748b; }
+    .footer-support a { color: #00f2d2; text-decoration: none; font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="icon-box">🖥️</div>
+    <span class="tag">REGISTRO DE LICENCIA</span>
+    <h2>Vincular Equipo</h2>
+
+    <div class="form-group">
+      <label>Correo Electrónico Comprador</label>
+      <input type="email" id="email-input" placeholder="tu-email@ejemplo.com" autofocus>
+    </div>
+
+    <div class="form-group">
+      <label>Deporte Adquirido</label>
+      <select id="sport-select">
+        <option value="futbol">⚽ Fútbol</option>
+        <option value="futsal">⚽ Futsal</option>
+        <option value="rugby">🏉 Rugby</option>
+        <option value="basquet">🏀 Básquet</option>
+        <option value="padel">🎾 Pádel</option>
+        <option value="tenis">🎾 Tenis</option>
+        <option value="voley">🏐 Vóley</option>
+        <option value="handball">🤾 Handball</option>
+        <option value="billar 3">🎱 Billar 3 Bandas</option>
+        <option value="pool">🎱 Pool</option>
+        <option value="boxeo">🥊 Boxeo</option>
+        <option value="artes mixtas">🥋 Artes Mixtas (MMA)</option>
+        <option value="hockey cesped">🏑 Hockey Césped</option>
+        <option value="hockey hielo">🏒 Hockey Hielo</option>
+        <option value="beisbol">⚾ Béisbol</option>
+        <option value="futbol americano">🏈 Fútbol Americano</option>
+        <option value="golf">⛳ Golf</option>
+        <option value="ping pong">🏓 Ping Pong</option>
+        <option value="bochas">⚪ Bochas</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Plan Contratado</label>
+      <select id="plan-select">
+        <option value="Prueba (24 hs)">⏱️ Prueba (24 Horas)</option>
+        <option value="Mensual (30 días)" selected>📅 Suscripción Mensual</option>
+        <option value="Semestral (180 días)">📅 Suscripción Semestral</option>
+        <option value="Anual (365 días)">⭐ Licencia Anual</option>
+      </select>
+    </div>
+
+    <button class="btn-submit" id="btn-activate" onclick="submitLicense()">SOLICITAR ACTIVACIÓN</button>
+
+    <div class="status-box" id="status-box"></div>
+
+    <div class="notice-box">
+      ⚠️ <strong>Plazo de activación:</strong> La vinculación de tu equipo puede demorar hasta <strong>24 hs</strong>.
+    </div>
+
+    <button class="btn-store" onclick="openStore()">🛒 VISITAR TIENDA STREAMHUD</button>
+
+    <div class="footer-support">
+      Soporte: <a href="#" onclick="openSupport()">soporte@streamhud.io</a>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    let pollInterval = null;
+
+    async function submitLicense(isAutoPoll = false) {
+      const email = document.getElementById('email-input').value.trim();
+      
+      // En las verificaciones automáticas no se reenvía deporte ni plan para no saturar Telegram
+      const sport = isAutoPoll ? "" : document.getElementById('sport-select').value;
+      const plan = isAutoPoll ? "" : document.getElementById('plan-select').value;
+      
+      const btn = document.getElementById('btn-activate');
+
+      if (!email) {
+        showStatus("Por favor ingresá un correo válido.", "error");
+        return;
+      }
+
+      if (!isAutoPoll) {
+        btn.disabled = true;
+        showStatus("⏳ Enviando datos de solicitud al servidor...", "loading");
+      }
+
+      try {
+        const result = await ipcRenderer.invoke('submit-license-email', { email, sport, plan });
+
+        if (!result || !result.authorized) {
+          const msg = (result && result.message) ? result.message : "Error de validación con el servidor.";
+          
+          if (msg.toLowerCase().includes("pendiente") || msg.toLowerCase().includes("revisión")) {
+            showStatus("⏳ Solicitud enviada. Esperando aprobación en Telegram...", "pending");
+            
+            if (!pollInterval) {
+              pollInterval = setInterval(() => submitLicense(true), 4000);
+            }
+          } else {
+            showStatus("❌ " + msg, "error");
+            btn.disabled = false;
+            stopPolling();
+          }
+        } else {
+          stopPolling();
+          showStatus("✅ ¡Equipo vinculado con éxito! Cargando panel...", "success");
+        }
+      } catch (err) {
+        stopPolling();
+        showStatus("❌ Error de conexión con el servidor de licencias.", "error");
+        btn.disabled = false;
+      }
+    }
+
+    function stopPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+
+    function showStatus(text, type) {
+      const statusBox = document.getElementById('status-box');
+      statusBox.innerText = text;
+      statusBox.className = `status-box show ${type}`;
+    }
+
+    function openStore() {
+      ipcRenderer.invoke('open-external', 'https://streamhud.io/shop/');
+    }
+
+    function openSupport() {
+      ipcRenderer.invoke('open-external', 'mailto:soporte@streamhud.io');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stream HUD Full 3.0</title>
+<style>
+  :root{
+    --bg:#020b14;
+    --panel:#071526;
+    --line:#18344e;
+    --text:#f7f9ff;
+    --muted:#8291ad;
+    --cyan:#00f2d2;
+    --blue:#169dff;
+    --purple:#a649ff;
+    --green:#00f29a;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100vh;overflow:hidden;background:#000;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);user-select:none;}
+
+  .app{
+    width:100%;
+    height:100vh;
+    background:
+      radial-gradient(circle at 90% 12%, rgba(45,0,255,.12), transparent 20%),
+      linear-gradient(180deg,#020b14 0%,#03101d 100%);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* TITLEBAR */
+  .titlebar{
+    height:36px;
+    display:flex;
+    align-items:center;
+    padding:0 12px;
+    border-bottom:1px solid #164560;
+    background:#030b14;
+    gap:8px;
+    flex-shrink: 0;
+  }
+  .mini-logo{
+    width:22px;height:22px;border-radius:5px;
+    border:1px solid #0f86ff;
+    background:linear-gradient(155deg,#05142b,#020711);
+    display:grid;place-items:center;
+    overflow:hidden;
+  }
+  .mini-logo img{width:100%;height:100%;object-fit:cover;}
+  .window-title{font-size:12px;color:#e9edf7;font-weight:700;}
+
+  /* HERO HEADER */
+  .hero{
+    padding:10px 14px 0;
+    border-bottom:1px solid rgba(80,130,170,.16);
+    flex-shrink: 0;
+  }
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .brand-left{display:flex;align-items:center;gap:10px;min-width:0;}
+  .brand-logo{
+    width:40px;height:40px;border-radius:8px;
+    border:1px solid #0e93ff;
+    background:linear-gradient(145deg,#061a34,#020914);
+    display:grid;place-items:center;
+    box-shadow:0 0 10px rgba(0,144,255,.20);
+    overflow:hidden;
+    padding:3px;
+    flex-shrink: 0;
+  }
+  .brand-logo img{width:100%;height:100%;object-fit:contain;}
+
+  .brand-title{
+    font-size:22px;font-weight:900;letter-spacing:.3px;
+    display:flex;align-items:center;gap:5px;white-space:nowrap
+  }
+  .brand-title .stream{color:white}
+  .brand-title .hud{
+    background:linear-gradient(90deg,#16f2df,#13a7ff,#a84dff);
+    -webkit-background-clip:text;background-clip:text;color:transparent
+  }
+  .pill-full,.pill-ver{
+    border-radius:4px;padding:2px 5px;font-weight:900;font-size:9px
+  }
+  .pill-full{border:1px solid var(--cyan);color:var(--cyan);background:rgba(0,242,210,.04)}
+  .pill-ver{border:1px solid #22528b;color:#8597b8;background:#071225;margin-left:-2px}
+
+  /* ÚNICO BOTÓN SUPERIOR: TIENDA / SUMAR DEPORTE */
+  .hero-actions{display:flex;align-items:center;flex-shrink: 0;}
+  .btn-top{
+    height:30px;padding:0 10px;border-radius:6px;font-size:11px;font-weight:800;
+    cursor:pointer;display:flex;align-items:center;gap:5px;border:1px solid transparent;
+    transition:all 0.2s ease;white-space:nowrap;
+    background:linear-gradient(90deg,#00f29a,#0dbe75);color:#02170f;border-color:rgba(0,242,154,.4);
+  }
+  .btn-top:hover{filter:brightness(1.15);}
+
+  .tabs{display:flex;gap:12px;margin-top:8px}
+  .tab{
+    display:flex;align-items:center;gap:6px;padding:6px 8px 8px;
+    color:#8f9ab0;font-weight:800;border-bottom:2px solid transparent;
+    background:transparent;border-top:0;border-left:0;border-right:0;
+    font-family:inherit;font-size:13px;cursor:pointer;
+  }
+  .tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+  .tab .ico{font-size:14px}
+
+  /* CONTENIDO PRINCIPAL */
+  .content{padding:10px 14px 0;flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+  /* BANNER DE ALERTA DENTRO DEL PANEL */
+  .alert-banner {
+    background: linear-gradient(135deg, rgba(0, 242, 210, 0.12), rgba(7, 21, 38, 0.95));
+    border: 1px solid var(--cyan);
+    border-left: 4px solid var(--cyan);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 0 15px rgba(0, 242, 210, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: fadeIn 0.3s ease;
+  }
+  .alert-banner.hidden { display: none !important; }
+  .alert-header { display: flex; align-items: center; gap: 6px; }
+  .alert-icon { font-size: 13px; }
+  .alert-title {
+    font-size: 11px; font-weight: 900; color: var(--cyan);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .alert-close {
+    margin-left: auto; background: transparent; border: none;
+    color: #8291ad; font-size: 12px; font-weight: 900; cursor: pointer; padding: 0 4px;
+  }
+  .alert-close:hover { color: #fff; }
+  .alert-body { font-size: 11px; color: #c0c8d8; line-height: 1.35; white-space: pre-wrap; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card{
+    border-radius:12px; border:1px solid #1b3f60;
+    background:linear-gradient(135deg,rgba(11,30,51,.97),rgba(5,18,33,.97));
+    margin-bottom:8px; position:relative;
+  }
+
+  .sport-card{padding:10px 12px}
+  .sport-row{display:flex;align-items:center;gap:10px}
+  .sport-icon{
+    flex:0 0 38px;width:38px;height:38px;border-radius:50%;
+    display:grid;place-items:center;font-size:20px;
+    background:radial-gradient(circle at 45% 35%,#0c62be,#06214b 70%);
+    border:1px solid #148df7; box-shadow:0 0 10px rgba(0,112,255,.25)
+  }
+  .sport-main{flex:1;min-width:0}
+  .sport-label{font-size:10px;color:#8f9ab0;font-weight:800;text-transform:uppercase;margin-bottom:3px;letter-spacing:0.5px;}
+
+  .select-wrap{position:relative}
+  select{
+    width:100%;height:34px;border-radius:8px;
+    appearance:none;-webkit-appearance:none;
+    border:1px solid #264766; background:#020b14;color:var(--cyan);
+    padding:0 30px 0 10px;font-size:13px;font-weight:800;
+    outline:none;cursor:pointer;
+  }
+  .arrow{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    width:7px;height:7px;border-right:2px solid var(--cyan);border-bottom:2px solid var(--cyan);
+    rotate:45deg;pointer-events:none;margin-top:-2px
+  }
+
+  .module{
+    padding:10px 12px; border-left:3px solid var(--purple); border-radius:12px;
+    background:
+      radial-gradient(circle at 9% 12%, rgba(122,48,255,.15), transparent 34%),
+      linear-gradient(135deg,#0a1630,#071227);
+  }
+  .module.blue{
+    border-left-color:#059bff;
+    background:
+      radial-gradient(circle at 9% 12%, rgba(0,126,255,.18), transparent 34%),
+      linear-gradient(135deg,#071c38,#06152a);
+  }
+  .module-head{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+  .module-icon{
+    width:34px;height:34px;border-radius:8px;display:grid;place-items:center;
+    font-size:18px;background:linear-gradient(145deg,#4d197e,#231050);
+    border:1px solid #9c42ff;box-shadow:0 0 10px rgba(146,55,255,.20)
+  }
+  .blue .module-icon{background:linear-gradient(145deg,#0754a1,#08235a);border-color:#159cff;box-shadow:0 0 10px rgba(0,137,255,.20)}
+  .module h2{font-size:14px;margin:0 0 1px;font-weight:900}
+  .module p{margin:0;color:#abb6cb;font-size:11px}
+
+  .url-row{display:flex;gap:8px;align-items:center}
+  .url-box{
+    flex:1;height:34px;border-radius:8px;background:#020b14;border:1px solid #1f3855;
+    display:flex;align-items:center;gap:8px;padding:0 10px;font-size:12px;color:#f4f7fb;min-width:0;
+    position:relative;overflow:hidden;
+  }
+  .url-box .globe{font-size:14px;color:#aeb9cc;position:relative;z-index:2}
+  .url-box .masked-url{
+    color:#647a9c; letter-spacing:2px; font-weight:700; font-size:13px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    position:relative;z-index:2;transition:all .2s ease;
+  }
+  .url-box .masked-url.copied-state{ color:var(--cyan); letter-spacing:0; font-size:11px; font-weight:900; }
+  .url-box::after{
+    content:"";position:absolute;left:0;bottom:0;height:3px;width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg, rgba(0,242,210,0) 0%, rgba(0,242,210,.95) 30%, rgba(0,242,154,.95) 100%);
+    opacity:0;
+  }
+  .url-box.animating::after{ opacity:1;animation:copySweep 1.15s ease-out forwards; }
+  @keyframes copySweep{ 0%{width:0%;opacity:1} 85%{width:100%;opacity:1} 100%{width:100%;opacity:.15} }
+
+  .copy-btn{
+    height:34px;min-width:86px;border-radius:8px;
+    border:1px solid #9a42ff;background:rgba(109,37,192,.12);
+    color:#a84cff;font-size:11px;font-weight:900;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    transition:all 0.2s;
+  }
+  .blue .copy-btn{border-color:#159cff;color:#159cff;background:rgba(0,126,255,.08)}
+  .copy-btn:hover{filter:brightness(1.2)}
+  .copy-btn:active{transform:translateY(1px)}
+
+  .view{display:block}
+  .view.hidden{display:none}
+
+  .support-view{padding-bottom:8px}
+  .support-card{
+    border-radius:12px; border:1px solid #183a58;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(0,242,154,.08), transparent 34%),
+      linear-gradient(135deg,rgba(11,30,51,.98),rgba(5,18,33,.98));
+    margin-bottom:8px; padding:12px 14px;
+  }
+  .support-card h2{margin:0 0 4px;color:var(--green);font-size:14px;font-weight:900;}
+  .support-card p{margin:0 0 10px;color:#aeb9cc;font-size:11px;line-height:1.3;}
+  
+  .support-action{
+    width:100%;font-family:inherit;min-height:34px;border-radius:8px;
+    border:1px solid rgba(38,160,255,.55);display:flex;align-items:center;justify-content:center;
+    gap:6px;text-decoration:none;color:white;font-size:12px;font-weight:900;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .support-action.mail{background:linear-gradient(90deg,#1c62f0,#099bd9);}
+  .support-action.store{background:linear-gradient(90deg,#00ef8b,#13b975);border-color:rgba(0,242,154,.55);color:#02170f;}
+
+  /* MODAL FLOTANTE DE COMPRA PARA DEPORTES BLOQUEADOS */
+  .modal-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(2, 9, 18, 0.88); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.hidden { display: none !important; }
+  .modal-card {
+    width: 100%; max-width: 350px;
+    background: linear-gradient(145deg, #091e36, #030d1a);
+    border: 1px solid #165383; border-radius: 14px; padding: 20px 18px;
+    box-shadow: 0 0 30px rgba(0, 242, 210, 0.22); text-align: center;
+  }
+  .modal-header-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,242,210,0.2) 0%, rgba(3,13,26,1) 80%);
+    border: 1px solid var(--cyan); display: grid; place-items: center; font-size: 22px;
+    margin: 0 auto 10px; box-shadow: 0 0 12px rgba(0, 242, 210, 0.3);
+  }
+  .modal-title { font-size: 15px; font-weight: 900; color: #fff; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal-body { font-size: 12px; color: #b0c2de; line-height: 1.45; margin-bottom: 18px; }
+  .modal-body strong { color: var(--cyan); }
+  .modal-actions { display: flex; gap: 8px; justify-content: center; }
+  .modal-btn {
+    flex: 1; height: 36px; border-radius: 8px; font-size: 11px; font-weight: 900;
+    cursor: pointer; border: none; transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .modal-btn-cancel { background: #0d2238; color: #8291ad; border: 1px solid #1c3b5d; }
+  .modal-btn-cancel:hover { background: #153252; color: #fff; }
+  .modal-btn-shop {
+    background: linear-gradient(90deg, #00f29a, #0dbe75);
+    color: #02170f; box-shadow: 0 0 12px rgba(0, 242, 154, 0.35);
+  }
+  .modal-btn-shop:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+  /* FOOTER */
+  .footer{
+    margin-top:auto; border-top:1px solid #17344e; padding:8px 14px;
+    display:flex;align-items:center;gap:10px; background:rgba(2,12,23,.85); flex-shrink:0;
+  }
+  .shield{
+    width:24px;height:28px;clip-path:polygon(50% 0,92% 13%,88% 72%,50% 100%,12% 72%,8% 13%);
+    border:1px solid var(--cyan);background:rgba(0,242,210,.05);
+    display:grid;place-items:center;color:var(--cyan);font-size:12px;
+  }
+  .foot-copy strong{display:block;color:var(--cyan);font-size:11px;margin-bottom:1px}
+  .foot-copy span{color:#8291ad;font-size:9px}
+  .version{margin-left:auto;color:#74829c;font-size:10px;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="app">
+  
+  <div class="titlebar">
+    <div class="mini-logo">
+      <img src="icon.ico" alt="HUD" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+      <span style="display:none;"><b style="color:#ff4a4a">STREAM</b><br>HUD</span>
+    </div>
+    <div class="window-title">Stream HUD Full 3.0</div>
+  </div>
+
+  <section class="hero">
+    <div class="brandrow">
+      <div class="brand-left">
+        <div class="brand-logo">
+          <img src="icon.ico" alt="StreamHUD Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+          <b style="display:none;"><em>STREAM</em>HUD<br><small>FULL</small></b>
+        </div>
+        <div class="brand-title">
+          <span class="stream">STREAM</span><span class="hud">HUD</span>
+          <span class="pill-full">FULL</span><span class="pill-ver">3.0</span>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn-top" type="button" onclick="openShop()">
+          <span>🛒</span> Sumar Deporte
+        </button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="systemTab" type="button"><span class="ico">⚙</span> Sistema</button>
+      <button class="tab" id="helpTab" type="button"><span class="ico">◯</span> Ayuda &amp; Soporte</button>
+    </div>
+  </section>
+
+  <main class="content">
+
+    <div id="alertBanner" class="alert-banner hidden">
+      <div class="alert-header">
+        <span class="alert-icon">🔔</span>
+        <span id="alertTitle" class="alert-title">AVISO DEL SISTEMA</span>
+        <button class="alert-close" onclick="closeAlert()">✕</button>
+      </div>
+      <div id="alertBody" class="alert-body"></div>
+    </div>
+    
+    <div id="systemView" class="view">
+      
+      <section class="card sport-card">
+        <div class="sport-row">
+          <div class="sport-icon" id="sportIcon">⚽</div>
+          <div class="sport-main">
+            <div class="sport-label">Seleccionar deporte activo</div>
+            <div class="select-wrap">
+              <select id="sportSelect" aria-label="Seleccionar deporte activo" onchange="changeSport()">
+              </select>
+              <div class="arrow"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card module">
+        <div class="module-head">
+          <div class="module-icon">◇</div>
+          <div>
+            <h2>Overlay OBS</h2>
+            <p>Superposiciones visuales para tu stream.</p>
+          </div>
+        </div>
+        <div class="url-row">
+          <div class="url-box">
+            <span class="globe">◎</span>
+            <span class="masked-url" id="overlayUrlText">••••••••••••••••••••••••</span>
+          </div>
+          <button class="copy-btn" id="btn-overlay" onclick="copyUrl('overlay', this)">▣ COPIAR</button>
+        </div>
+      </section>
+
+      <section class="card module blue">
+        <div class="module-head">
+          <div class="module-icon">🎮</div>
+          <div>
+            <h2>Panel de Control</h2>
+            <p>Controla tu transmisión en tiempo real.</p>
+          </div>
+        </div>
+        <div class="url-row">
+          <div class="url-box">
+            <span class="globe">◎</span>
+            <span class="masked-url" id="controlUrlText">••••••••••••••••••••••••</span>
+          </div>
+          <button class="copy-btn" id="btn-control" onclick="copyUrl('control', this)">▣ COPIAR</button>
+        </div>
+      </section>
+
+    </div>
+
+    <div id="helpView" class="view hidden support-view">
+      <section class="support-card">
+        <h2>Soporte Técnico</h2>
+        <p>Si tenés problemas con la activación o la transmisión, contactanos vía email:</p>
+        <button class="support-action mail" id="copyMailBtn" type="button" onclick="copySupportMail()">
+          <span class="action-icon">✉</span>
+          <span id="supportEmail">soporte@streamhud.io</span>
+        </button>
+      </section>
+
+      <section class="support-card">
+        <h2>Planes &amp; Licencias</h2>
+        <p>Conocé más sobre nuestras herramientas y renová tus suscripciones en nuestra tienda oficial:</p>
+        <button class="support-action store" type="button" onclick="openShop()">
+          <span class="action-icon">🛒</span>
+          Visitar Tienda StreamHUD
+        </button>
+      </section>
+    </div>
+
+  </main>
+
+  <div id="buyModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header-icon">🔒</div>
+      <div class="modal-title">Módulo No Activo</div>
+      <div class="modal-body">
+        El módulo de <strong id="modalSportName">FÚTBOL</strong> no está activo en tu cuenta.<br><br>
+        ¿Querés solicitar la activación de este deporte?
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="closeBuyModal()">Cancelar</button>
+        <button class="modal-btn modal-btn-shop" onclick="confirmBuyModal()">🛒 Solicitar / Tienda</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="shield">♙</div>
+    <div class="foot-copy">
+      <strong>Conexión segura</strong>
+      <span>Todos los servicios funcionan correctamente.</span>
+    </div>
+    <div class="version">v3.0.0</div>
+  </footer>
+
+</div>
+
+<script>
+  const { ipcRenderer, clipboard } = require('electron');
+
+  const SHOP_URL = "https://streamhud.io/shop/";
+
+  const ALL_SPORTS_MAP = {
+    'futbol': { emoji: '⚽', label: '⚽ Fútbol' },
+    'futsal': { emoji: '⚽', label: '⚽ Futsal' },
+    'rugby': { emoji: '🏉', label: '🏉 Rugby' },
+    'basquet': { emoji: '🏀', label: '🏀 Básquet' },
+    'padel': { emoji: '🎾', label: '🎾 Pádel' },
+    'tenis': { emoji: '🎾', label: '🎾 Tenis' },
+    'voley': { emoji: '🏐', label: '🏐 Vóley' },
+    'handball': { emoji: '🤾', label: '🤾 Handball' },
+    'billar 3': { emoji: '🎱', label: '🎱 Billar 3 Bandas' },
+    'pool': { emoji: '🎱', label: '🎱 Pool' },
+    'boxeo': { emoji: '🥊', label: '🥊 Boxeo' },
+    'artes mixtas': { emoji: '🥋', label: '🥋 Artes Mixtas (MMA)' },
+    'hockey cesped': { emoji: '🏑', label: '🏑 Hockey Césped' },
+    'hockey hielo': { emoji: '🏒', label: '🏒 Hockey Hielo' },
+    'beisbol': { emoji: '⚾', label: '⚾ Béisbol' },
+    'futbol americano': { emoji: '🏈', label: '🏈 Fútbol Americano' },
+    'golf': { emoji: '⛳', label: '⛳ Golf' },
+    'ping pong': { emoji: '🏓', label: '🏓 Ping Pong' },
+    'bochas': { emoji: '⚪', label: '⚪ Bochas' },
+    'streaming': { emoji: '📺', label: '📺 Streaming' }
+  };
+
+  let activeSportsList = [];
+  let currentSport = '';
+  let pendingLockedSport = '';
+  let userEmail = '';
+
+  const sportSelect = document.getElementById('sportSelect');
+  const sportIcon = document.getElementById('sportIcon');
+  const systemTab = document.getElementById('systemTab');
+  const helpTab = document.getElementById('helpTab');
+  const systemView = document.getElementById('systemView');
+  const helpView = document.getElementById('helpView');
+
+  async function init() {
+    const authData = await ipcRenderer.invoke('get-auth-data');
+    if (authData) {
+      if (authData.email) userEmail = authData.email.trim();
+      if (authData.deportes && authData.deportes.length > 0) {
+        activeSportsList = authData.deportes.map(s => s.trim().toLowerCase());
+      }
+    }
+
+    if (activeSportsList.length === 0) {
+      activeSportsList = ['futbol'];
+    }
+
+    renderSportOptions();
+    checkAnnouncements(authData);
+  }
+
+  function renderSportOptions() {
+    sportSelect.innerHTML = '';
+
+    // 1. Mostrar deportes activos
+    activeSportsList.forEach(key => {
+      if (ALL_SPORTS_MAP[key]) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = ALL_SPORTS_MAP[key].label;
+        sportSelect.appendChild(option);
+      }
+    });
+
+    // 2. Mostrar deportes bloqueados con candado
+    Object.keys(ALL_SPORTS_MAP).forEach(key => {
+      if (!activeSportsList.includes(key)) {
+        const option = document.createElement('option');
+        option.value = `locked:${key}`;
+        option.textContent = `🔒 ${ALL_SPORTS_MAP[key].label.replace(/^[^\s]+\s/, '')} (No activo)`;
+        sportSelect.appendChild(option);
+      }
+    });
+
+    if (activeSportsList.length > 0) {
+      sportSelect.value = activeSportsList[0];
+      updateCurrentSport(activeSportsList[0]);
+    }
+  }
+
+  function changeSport() {
+    const val = sportSelect.value;
+
+    if (val.startsWith('locked:')) {
+      pendingLockedSport = val.replace('locked:', '');
+      openBuyModal(pendingLockedSport);
+      sportSelect.value = currentSport;
+    } else {
+      updateCurrentSport(val);
+    }
+  }
+
+  function openBuyModal(sportKey) {
+    document.getElementById('modalSportName').textContent = sportKey.toUpperCase();
+    document.getElementById('buyModal').classList.remove('hidden');
+  }
+
+  function closeBuyModal() {
+    document.getElementById('buyModal').classList.add('hidden');
+    pendingLockedSport = '';
+  }
+
+  function confirmBuyModal() {
+    const sportToBuy = pendingLockedSport;
+    closeBuyModal();
+    openShop(sportToBuy);
+  }
+
+  function updateCurrentSport(sport) {
+    currentSport = sport;
+    sportIcon.textContent = ALL_SPORTS_MAP[sport] ? ALL_SPORTS_MAP[sport].emoji : '🎮';
+  }
+
+  function openShop(deporteParam = '') {
+    let url = SHOP_URL;
+    const params = [];
+    
+    if (userEmail) params.push(`email=${encodeURIComponent(userEmail)}`);
+    if (deporteParam) params.push(`deporte=${encodeURIComponent(deporteParam)}`);
+    
+    if (params.length > 0) {
+      url += '?' + params.join('&');
+    }
+
+    openLink(url);
+  }
+
+  function showView(view) {
+    const showingSystem = view === 'system';
+    systemView.classList.toggle('hidden', !showingSystem);
+    helpView.classList.toggle('hidden', showingSystem);
+    systemTab.classList.toggle('active', showingSystem);
+    helpTab.classList.toggle('active', !showingSystem);
+  }
+
+  systemTab.addEventListener('click', () => showView('system'));
+  helpTab.addEventListener('click', () => showView('help'));
+
+  function copyUrl(type, button) {
+    if (!currentSport) return;
+    
+    const targetUrl = `http://localhost:3000/${currentSport}/${type}`;
+    clipboard.writeText(targetUrl);
+
+    const el = document.getElementById(`${type}UrlText`);
+    const box = el.closest('.url-box');
+    const originalButton = button.innerHTML;
+    const originalText = el.textContent;
+
+    button.innerHTML = 'COPIADO';
+    el.textContent = '¡ENLACE COPIADO!';
+    el.classList.add('copied-state');
+
+    box.classList.remove('animating');
+    void box.offsetWidth;
+    box.classList.add('animating');
+
+    setTimeout(() => {
+      button.innerHTML = originalButton;
+      el.textContent = originalText;
+      el.classList.remove('copied-state');
+      box.classList.remove('animating');
+    }, 1400);
+  }
+
+  async function copySupportMail() {
+    const btn = document.getElementById('copyMailBtn');
+    const email = document.getElementById('supportEmail').textContent.trim();
+    const originalContent = btn.innerHTML;
+
+    clipboard.writeText(email);
+
+    btn.innerHTML = '<span class="action-icon">✓</span> Correo copiado';
+    setTimeout(() => {
+      btn.innerHTML = originalContent;
+    }, 1400);
+  }
+
+  function openLink(url) {
+    ipcRenderer.invoke('open-external', url);
+  }
+
+  function checkAnnouncements(authData) {
+    let personalMsg = (authData && authData.personalMessage) ? authData.personalMessage.trim() : "";
+    let globalMsg = (authData && authData.globalMessage) ? authData.globalMessage.trim() : "";
+
+    ipcRenderer.invoke('get-messages').then(liveData => {
+      if (liveData) {
+        if (liveData.personalMessage && liveData.personalMessage.trim() !== "") {
+          personalMsg = liveData.personalMessage.trim();
+        }
+        if (liveData.globalMessage && liveData.globalMessage.trim() !== "") {
+          globalMsg = liveData.globalMessage.trim();
+        }
+      }
+      triggerAlert(personalMsg, globalMsg);
+    }).catch(() => {
+      triggerAlert(personalMsg, globalMsg);
+    });
+  }
+
+  function triggerAlert(personal, global) {
+    if (personal !== "") {
+      showAlert("Mensaje Personal", personal);
+    } else if (global !== "") {
+      showAlert("Aviso General", global);
+    }
+  }
+
+  function showAlert(title, bodyText) {
+    document.getElementById('alertTitle').innerText = title.toUpperCase();
+    document.getElementById('alertBody').innerText = bodyText;
+    document.getElementById('alertBanner').classList.remove('hidden');
+  }
+
+  function closeAlert() {
+    document.getElementById('alertBanner').classList.add('hidden');
+  }
+
+  init();
+</script>
+</body>
+</html>
