@@ -1,0 +1,62 @@
+{
+  "name": "streamhud-multisport",
+  "version": "3.0.0",
+  "description": "StreamHUD Full 3.0 - Sistema Multideporte para OBS",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win -p always",
+    "dist:mac": "electron-builder --mac -p always",
+    "dist:all": "electron-builder -mw -p always"
+  },
+  "build": {
+    "appId": "com.streamhud.multisport",
+    "productName": "StreamHUD Full 3.0",
+    "asar": true,
+    "publish": {
+      "provider": "github",
+      "owner": "airrampfbo-rgb",
+      "repo": "streamhudversion3.0"
+    },
+    "win": {
+      "icon": "icon.ico",
+      "target": "nsis"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.video"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "StreamHUD Full 3.0"
+    },
+    "files": [
+      "**/*",
+      "!dist/*"
+    ]
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7",
+    "express": "^4.18.2",
+    "node-machine-id": "^1.1.12",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
